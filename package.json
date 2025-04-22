@@ -1,0 +1,29 @@
+{
+  "name": "moodboard-fm",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Audio-Reactive palette/animation generator",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MelliodasMango0/MoodBoard-FM.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MelliodasMango0/MoodBoard-FM/issues"
+  },
+  "homepage": "https://github.com/MelliodasMango0/MoodBoard-FM#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.95.1"
+  }
+}
