@@ -156,7 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (moodDescription) {
         const moodText = document.createElement('p');
-        moodText.textContent = moodDescription;
+        const cleanMood = moodDescription.replace(/^Mood:\s*/i, '');
+        moodText.textContent = cleanMood;
         moodText.className = 'mood-text';
         paletteDisplay.appendChild(moodText);
       }
