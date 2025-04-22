@@ -15,7 +15,6 @@
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     color: var(--textColor);
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -294,7 +293,7 @@ input::placeholder {
 }
 
 html, body {
-    overflow: hidden;
+    overflow: visible;
   }
   
   .ui-container {
@@ -303,6 +302,7 @@ html, body {
     border-radius: 20px;
     padding: 40px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+		margin-top: 20px;
   }
   
   body {
