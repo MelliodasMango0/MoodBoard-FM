@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MoodBoard FM</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="container">
+
+  <div class="ambient-layer"></div>
+
+  <div class="container ui-container">
     <h1>MoodBoard FM</h1>
-    <p>Turn any song into a visual moodboard powered by AI.</p>
+    <p>Turn any song into a visual moodboard.</p>
 
     <form id="songForm">
-      <input type="text" id="title" placeholder="Song Title" required>
-      <input type="text" id="artist" placeholder="Artist" required>
+      <input type="text" id="title" placeholder="Song Title" required />
+      <input type="text" id="artist" placeholder="Artist" required />
       <button type="submit">Generate Mood</button>
     </form>
+
     <button id="regenBtn" style="margin-top: 15px;">Generate Again</button>
     <div id="paletteDisplay" class="palette"></div>
-    <div id="loadingIndicator" style="display: none;" class="loading">
-        <div class="spinner"></div>
-        <p>Generating moodboard...</p>
-      </div>
-      
+
+    <div id="loadingIndicator" class="loading" style="display: none;">
+      <p>Generating moodboard...</p>
+    </div>
   </div>
+
   <script type="module" src="./main.js"></script>
 </body>
 </html>
