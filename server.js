@@ -46,13 +46,21 @@ async function getSpotifyToken() {
 }
 
 // ===== GPT Mood Palette Endpoint =====
-function buildMoodPrompt(title, artist) {
-  return `You are a creative assistant that translates music into visual color themes.
+function buildMoodPrompt(title, artist, genre = '') {
+  return `You are a visual design assistant that translates music into vibrant color palettes.
 
-A user is analyzing the song "${title}" by "${artist}". Based on the song's emotional tone, mood, and sonic atmosphere (consider tempo, instrumentation, and genre), generate a short descriptive sentence of the song’s mood. Then return a list of 4–5 hex color codes that best capture the emotion and energy of the music. These colors should be suitable for use in a relaxing, visually rich moodboard app.
+  Analyze the song "${title}" by "${artist}"${genre ? ` in the ${genre} genre` : ""}. Based on the song’s emotional tone, sonic atmosphere (tempo, instrumentation, intensity), and genre, generate a vivid description of the song’s mood. Then return a palette of **7 distinct hex color codes** that:
+  - Flow well in a gradient animation (e.g. smooth transitions)
+  - Reflect the emotional and energetic qualities of the music
+  - Avoid dull or neutral tones unless the song is extremely minimal or ambient
+  - Emphasize strong contrast and color personality
+  - Match genre expectations (e.g. metal = dark reds, charcoals, blood orange; EDM = neons; jazz = warm golds and navies; lofi = dusty pastels; pop = bold, bright hues)
 
-Return only the color hex codes in a JSON array, like: ["#112233", "#445566", "#778899"]`;
+  Return only the color hex codes in a JSON array like:
+  ["#FF4D4D", "#C70039", "#900C3F", "#581845", "#1C1C1C", "#FFC300", "#DAF7A6"]`;
 }
+
+
 
 app.post('/mood-palette', async (req, res) => {
     const { title, artist } = req.body;
@@ -64,7 +72,7 @@ app.post('/mood-palette', async (req, res) => {
       const gptRes = await openai.chat.completions.create({
         model: 'gpt-4-turbo',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
+        temperature: 0.9,
         max_tokens: 200,
       });
   
@@ -111,6 +119,7 @@ app.get('/search', async (req, res) => {
       artist: track.artists.map(a => a.name).join(', '),
       previewUrl: track.preview_url,
       artwork: track.album.images?.[0]?.url || '',
+      id: track.id
     });
   } catch (err) {
     console.error('❌ Spotify search error:', err);
@@ -168,7 +177,24 @@ app.post('/enrich', async (req, res) => {
       res.status(500).json({ error: 'Failed to enrich song data' });
     }
   });
+
+  app.get('/audio-features/:id', async (req, res) => {
+    const id = req.params.id;
+    const token = await getSpotifyToken();
   
+    const response = await fetch(`https://api.spotify.com/v1/audio-features/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Spotify audio-features error:", error); // Add this!
+      return res.status(500).json({ error });
+    }
+  
+    const features = await response.json();
+    res.json({ tempo: features.tempo });
+  });
   
 
 // ===== Start Server =====

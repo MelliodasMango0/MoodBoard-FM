@@ -3,28 +3,53 @@ import { searchSpotifyTrack } from './spotifySearch.js';
 
 let particleInterval = null; // global tracker
 
-function spawnSoundWaves(container, count = 4, color = 'var(--waveColor, #ffffff44)') {
+function spawnSoundWaves(container, count = 2, color = 'var(--waveColor, #ffffff44)') {
   for (let i = 0; i < count; i++) {
-    const ring = document.createElement('div');
-    ring.className = 'pulse-ring';
-    ring.style.animationDelay = `${i * 0.15}s`;
-    ring.style.borderColor = color;
-    container.appendChild(ring);
+    let ring = container.querySelector(`.pulse-ring[data-index="${i}"]`);
+    if (!ring) {
+      ring = document.createElement('div');
+      ring.className = 'pulse-ring';
+      ring.dataset.index = i;
+      container.appendChild(ring);
+    }
 
-    // Cleanup after animation
-    ring.addEventListener('animationend', () => ring.remove());
+    ring.style.animation = 'none';
+    void ring.offsetWidth;
+    ring.style.borderColor = color;
+    ring.style.animation = `pulseWave 1.2s ease-out forwards`;
   }
 }
 
+
+let blinkInterval = null;
+
+function startParticleBlinking(bpm) {
+  stopParticleBlinking();
+  const interval = Math.round((60 / bpm) * 1000);
+  blinkInterval = setInterval(() => {
+    const particles = document.querySelectorAll('.particle');
+    if (!particles.length) return;
+    particles.forEach(p => {
+      p.classList.add('blink');
+      setTimeout(() => p.classList.remove('blink'), 300);
+    });
+    
+  }, interval);
+}
+
+function stopParticleBlinking() {
+  if (blinkInterval) clearInterval(blinkInterval);
+  blinkInterval = null;
+}
 
 function startParticleLoop(baseColor) {
   stopParticleLoop(); 
   const isDark = isDarkColor(baseColor);
 
-  const shapes = ['square', 'diamond', 'blob']; // Add 'triangle' carefully (diff structure)
+  const shapes = ['square', 'diamond', 'blob']; 
 
   particleInterval = setInterval(() => {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const p = document.createElement('div');
       const shape = shapes[Math.floor(Math.random() * shapes.length)];
       p.className = `particle ${shape}`;
@@ -47,7 +72,7 @@ function startParticleLoop(baseColor) {
       document.body.appendChild(p);
       setTimeout(() => p.remove(), 14000);
     }
-  }, 30); 
+  }, 100); 
 }
 
 
@@ -58,16 +83,6 @@ function stopParticleLoop() {
     particleInterval = null;
   }
 }
-
-function getContrastYIQ(hexcolor) {
-  const c = hexcolor.replace('#', '');
-  const r = parseInt(c.substr(0,2),16);
-  const g = parseInt(c.substr(2,2),16);
-  const b = parseInt(c.substr(4,2),16);
-  const yiq = (r*299 + g*587 + b*114)/1000;
-  return yiq >= 128 ? '#111' : '#fff';
-}
-
 
 function updateTextColorBasedOnBackground(bgHex1, bgHex2) {
   const luminance = hex => {
@@ -86,7 +101,6 @@ function updateTextColorBasedOnBackground(bgHex1, bgHex2) {
 
   return avgLum < 0.5 ? '#ffffff' : '#111111';
 }
-
 
 
 function isDarkColor(hex) {
@@ -175,7 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
         enrichSong({ title, artist }),
         searchSpotifyTrack(`${title} ${artist}`)
       ]);
-
+      const spotifyId = spotifyData?.id;
+      const audioFeatureRes = await fetch(`http://localhost:3001/audio-features/${spotifyId}`);
+    
+      const audioFeatureData = await audioFeatureRes.json();
+      const bpm = audioFeatureData.tempo;
+      const intervalMs = Math.round((60 / bpm) * 1000);
+      
       if (!palette.length) {
         paletteDisplay.innerHTML = '<p>❌ Could not generate a palette.</p>';
         return;
@@ -229,31 +249,43 @@ document.addEventListener('DOMContentLoaded', () => {
           audio.className = 'preview-player';
           infoContainer.appendChild(audio);
         
-          audio.addEventListener('play', () => {
+          let waveInterval = null;
+        
+          audio.addEventListener('play', async () => {
             document.body.classList.add('audio-reactive');
             artworkImg.classList.add('pulsing');
-            waveContainer.classList.add('active');  // Activate sound waves
-            audio.waveInterval = setInterval(() => {
-              spawnSoundWaves(waveContainer, 4);
-            }, 1000);
-          });
+            waveContainer.classList.add('active');
           
-          audio.addEventListener('pause', () => {
-            document.body.classList.remove('audio-reactive');
-
-            artworkImg.classList.remove('pulsing');
-            waveContainer.classList.remove('active');  // Deactivate sound waves
-            clearInterval(audio.waveInterval);
-          });
+            if (!spotifyData?.id) return;
           
-          audio.addEventListener('ended', () => {
+            try {
+              const audioFeatureRes = await fetch(`http://localhost:3001/audio-features/${spotifyData.id}`);
+              const audioFeatureData = await audioFeatureRes.json();
+              const bpm = audioFeatureData.tempo;
+              const intervalMs = Math.round((60 / bpm) * 1000);
+          
+              const waveColor = getComputedStyle(document.body).getPropertyValue('--colorA').trim();
+              waveInterval = setInterval(() => {
+                spawnSoundWaves(waveContainer, 4, waveColor + 'aa'); 
+              }, intervalMs);          
+              startParticleBlinking(bpm);    
+            } catch (err) {
+              console.error("❌ Failed to fetch BPM:", err);
+            }
+          });          
+        
+          const clearAudioState = () => {
+            stopParticleBlinking();
             document.body.classList.remove('audio-reactive');
-
             artworkImg.classList.remove('pulsing');
-            waveContainer.classList.remove('active');  // Deactivate sound waves
-            clearInterval(audio.waveInterval);
-          });
-        } else {
+            waveContainer.classList.remove('active');
+            if (waveInterval) clearInterval(waveInterval);
+          };
+        
+          audio.addEventListener('pause', clearAudioState);
+          audio.addEventListener('ended', clearAudioState);
+        }
+         else {
           const noPreview = document.createElement('p');
           noPreview.textContent = "No preview available.";
           noPreview.style.fontSize = '0.8rem';

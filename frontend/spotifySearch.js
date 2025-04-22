@@ -17,6 +17,7 @@ export async function searchSpotifyTrack(query) {
         artist: data.artist,
         previewUrl: data.previewUrl,
         artwork: data.artwork,
+        id: data.id
       };
     } catch (err) {
       console.error("❌ Spotify search error:", err);
