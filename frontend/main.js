@@ -3,14 +3,31 @@ import { searchSpotifyTrack } from './spotifySearch.js';
 
 let particleInterval = null; // global tracker
 
+function spawnSoundWaves(container, count = 4, color = 'var(--waveColor, #ffffff44)') {
+  for (let i = 0; i < count; i++) {
+    const ring = document.createElement('div');
+    ring.className = 'pulse-ring';
+    ring.style.animationDelay = `${i * 0.15}s`;
+    ring.style.borderColor = color;
+    container.appendChild(ring);
+
+    // Cleanup after animation
+    ring.addEventListener('animationend', () => ring.remove());
+  }
+}
+
+
 function startParticleLoop(baseColor) {
   stopParticleLoop(); 
   const isDark = isDarkColor(baseColor);
 
+  const shapes = ['square', 'diamond', 'blob']; // Add 'triangle' carefully (diff structure)
+
   particleInterval = setInterval(() => {
     for (let i = 0; i < 5; i++) {
       const p = document.createElement('div');
-      p.className = 'particle';
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      p.className = `particle ${shape}`;
 
       const variation = Math.floor(Math.random() * 30);
       const adjusted = lightenOrDarkenColor(baseColor, isDark ? variation : -variation);
@@ -19,15 +36,21 @@ function startParticleLoop(baseColor) {
       p.style.left = `${Math.random() * 100}%`;
       p.style.bottom = `-10px`;
       p.style.opacity = `${Math.random() * 0.5 + 0.2}`;
-      p.style.width = p.style.height = `${Math.random() * 6 + 2}px`;
+      p.style.width = p.style.height = `${Math.random() * 6 + 4}px`;
       p.style.animationDelay = `0s`;
       p.style.animationDuration = `${8 + Math.random() * 6}s`;
+
+      if (shape !== 'triangle') {
+        p.style.boxShadow = `0 0 12px ${adjusted}`;
+      }
 
       document.body.appendChild(p);
       setTimeout(() => p.remove(), 14000);
     }
-  }, 300); 
+  }, 30); 
 }
+
+
 
 function stopParticleLoop() {
   if (particleInterval) {
@@ -104,6 +127,7 @@ function createAmbientShapes(colors = ['#ffffff11', '#ffffff22']) {
   });
 }
 
+
 // document.addEventListener('mousemove', (e) => {
 //   const x = (e.clientX / window.innerWidth - 0.5) * 10;
 //   const y = (e.clientY / window.innerHeight - 0.5) * 10;
@@ -173,42 +197,71 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayArtist = spotifyData?.artist || itunesData?.artist || artist;
         const previewUrl = itunesData?.previewUrl || null;
         const artwork = spotifyData?.artwork || itunesData?.artwork || '';
-
+      
         const infoContainer = document.createElement('div');
         infoContainer.className = 'song-info';
-
+      
+        const artworkWrapper = document.createElement('div');
+        artworkWrapper.className = 'artwork-wrapper';
+      
+        const waveContainer = document.createElement('div');
+        waveContainer.className = 'sound-wave';
+      
         const artworkImg = document.createElement('img');
         artworkImg.src = artwork;
         artworkImg.alt = `${displayTitle} artwork`;
         artworkImg.className = 'album-art';
-
+      
+  
+        artworkWrapper.appendChild(waveContainer);   // waves behind
+        artworkWrapper.appendChild(artworkImg);      // image on top
+        infoContainer.appendChild(artworkWrapper);   // wrapper into container
+      
         const titleInfo = document.createElement('p');
         titleInfo.textContent = `${displayTitle} – ${displayArtist}`;
         titleInfo.className = 'song-title';
-
-        infoContainer.appendChild(artworkImg);
         infoContainer.appendChild(titleInfo);
-
+      
         if (previewUrl) {
           const audio = document.createElement('audio');
           audio.src = previewUrl;
           audio.controls = true;
           audio.className = 'preview-player';
           infoContainer.appendChild(audio);
+        
+          audio.addEventListener('play', () => {
+            document.body.classList.add('audio-reactive');
+            artworkImg.classList.add('pulsing');
+            waveContainer.classList.add('active');  // Activate sound waves
+            audio.waveInterval = setInterval(() => {
+              spawnSoundWaves(waveContainer, 4);
+            }, 1000);
+          });
+          
+          audio.addEventListener('pause', () => {
+            document.body.classList.remove('audio-reactive');
 
+            artworkImg.classList.remove('pulsing');
+            waveContainer.classList.remove('active');  // Deactivate sound waves
+            clearInterval(audio.waveInterval);
+          });
+          
+          audio.addEventListener('ended', () => {
+            document.body.classList.remove('audio-reactive');
 
-          audio.addEventListener('play', () => artworkImg.classList.add('pulsing'));
-          audio.addEventListener('pause', () => artworkImg.classList.remove('pulsing'));
-          audio.addEventListener('ended', () => artworkImg.classList.remove('pulsing'));
+            artworkImg.classList.remove('pulsing');
+            waveContainer.classList.remove('active');  // Deactivate sound waves
+            clearInterval(audio.waveInterval);
+          });
         } else {
           const noPreview = document.createElement('p');
           noPreview.textContent = "No preview available.";
           noPreview.style.fontSize = '0.8rem';
           infoContainer.appendChild(noPreview);
         }
-
+      
         paletteDisplay.appendChild(infoContainer);
-      }
+      }      
     } catch (err) {
       console.error("❌ Error during moodboard generation:", err);
       paletteDisplay.innerHTML = '<p>Something went wrong. Try again.</p>';
