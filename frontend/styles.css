@@ -256,4 +256,19 @@ input::placeholder {
   color: var(--textColor);
 }
 
+html, body {
+    overflow: hidden;
+  }
+  
+  .ui-container {
+    backdrop-filter: blur(12px);
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  }
+  
+  body {
+    perspective: 800px;
+  }
   
