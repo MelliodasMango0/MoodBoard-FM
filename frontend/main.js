@@ -179,8 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const { palette, moodDescription } = await getMoodPalette(title, artist);
-      document.body.style.setProperty('--colorA', palette[0]);
-      document.body.style.setProperty('--colorB', palette[1] || palette[0]);
+      const gradientColors = palette.join(', ');
+      document.body.style.background = `linear-gradient(270deg, ${gradientColors})`;
+      document.body.style.backgroundSize = '1400% 1400%'; // Bigger size for smooth animation
+      document.body.style.animation = 'slideGradient 30s ease infinite';      
       const textColor = updateTextColorBasedOnBackground(palette[0], palette[1] || palette[0]);
       document.body.style.setProperty('--textColor', textColor);
       createAmbientShapes([palette[0] + '22', palette[1] + '11']); 

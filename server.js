@@ -47,18 +47,25 @@ async function getSpotifyToken() {
 
 // ===== GPT Mood Palette Endpoint =====
 function buildMoodPrompt(title, artist, genre = '') {
-  return `You are a visual design assistant that translates music into vibrant color palettes.
+  return `You are a creative assistant specializing in visual design for music-based applications.
 
-  Analyze the song "${title}" by "${artist}"${genre ? ` in the ${genre} genre` : ""}. Based on the song’s emotional tone, sonic atmosphere (tempo, instrumentation, intensity), and genre, generate a vivid description of the song’s mood. Then return a palette of **7 distinct hex color codes** that:
-  - Flow well in a gradient animation (e.g. smooth transitions)
-  - Reflect the emotional and energetic qualities of the music
-  - Avoid dull or neutral tones unless the song is extremely minimal or ambient
-  - Emphasize strong contrast and color personality
-  - Match genre expectations (e.g. metal = dark reds, charcoals, blood orange; EDM = neons; jazz = warm golds and navies; lofi = dusty pastels; pop = bold, bright hues)
+Analyze the song "${title}" by "${artist}"${genre ? ` in the ${genre} genre` : ""}. 
 
-  Return only the color hex codes in a JSON array like:
-  ["#FF4D4D", "#C70039", "#900C3F", "#581845", "#1C1C1C", "#FFC300", "#DAF7A6"]`;
+First, write a **single short descriptive sentence** summarizing the mood, emotional tone, and atmosphere of the song. This should feel like a caption that evokes the vibe of the music.
+
+Second, select **exactly 7 distinct hex color codes** that:
+- Flow smoothly together for gradient animations
+- Reflect the energy and emotional mood of the song
+- Use vivid, expressive colors (avoid dull, grayish, or neutral tones unless strongly appropriate)
+- Match genre expectations (e.g., metal = deep reds, dark greys; EDM = neon brights; jazz = warm blues and golds; lofi = muted dusty pastels; pop = bold, bright colors)
+
+IMPORTANT:
+- First, output the mood description sentence (natural language).
+- Then, on a new line, output ONLY the 7 color hex codes inside a valid JSON array, like: ["#FF4D4D", "#C70039", "#900C3F", "#581845", "#1C1C1C", "#FFC300", "#DAF7A6"]
+- No extra explanation, no bullet points, no additional formatting beyond the description sentence and the JSON array.
+`;
 }
+
 
 
 
