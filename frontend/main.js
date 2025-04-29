@@ -2,7 +2,6 @@ import { getMoodPalette, enrichSong } from './api.js';
 import { searchSpotifyTrack } from './spotifySearch.js';
 
 let particleInterval = null; // global tracker
-const MAX_PARTICLES = 100; // Maximum number of particles allowed at once
 
 function spawnSoundWaves(container, count = 2, color = 'var(--waveColor, #ffffff44)') {
   for (let i = 0; i < count; i++) {
@@ -46,43 +45,37 @@ function stopParticleBlinking() {
 function startParticleLoop(baseColor) {
   stopParticleLoop(); 
   const isDark = isDarkColor(baseColor);
+
   const shapes = ['square', 'diamond', 'blob']; 
 
   particleInterval = setInterval(() => {
-    // Count current particles first
-    const currentParticleCount = document.querySelectorAll('.particle').length;
-    
-    // Only create new particles if below maximum
-    if (currentParticleCount < MAX_PARTICLES) {
-      // Calculate how many we can safely add this cycle
-      const particlesToAdd = Math.min(3, MAX_PARTICLES - currentParticleCount);
-      
-      for (let i = 0; i < particlesToAdd; i++) {
-        const p = document.createElement('div');
-        const shape = shapes[Math.floor(Math.random() * shapes.length)];
-        p.className = `particle ${shape}`;
+    for (let i = 0; i < 3; i++) {
+      const p = document.createElement('div');
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      p.className = `particle ${shape}`;
 
-        const variation = Math.floor(Math.random() * 30);
-        const adjusted = lightenOrDarkenColor(baseColor, isDark ? variation : -variation);
-        p.style.background = adjusted;
+      const variation = Math.floor(Math.random() * 30);
+      const adjusted = lightenOrDarkenColor(baseColor, isDark ? variation : -variation);
+      p.style.background = adjusted;
 
-        p.style.left = `${Math.random() * 100}%`;
-        p.style.bottom = `-10px`;
-        p.style.opacity = `${Math.random() * 0.5 + 0.2}`;
-        p.style.width = p.style.height = `${Math.random() * 6 + 4}px`;
-        p.style.animationDelay = `0s`;
-        p.style.animationDuration = `${8 + Math.random() * 6}s`;
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.bottom = `-10px`;
+      p.style.opacity = `${Math.random() * 0.5 + 0.2}`;
+      p.style.width = p.style.height = `${Math.random() * 6 + 4}px`;
+      p.style.animationDelay = `0s`;
+      p.style.animationDuration = `${8 + Math.random() * 6}s`;
 
-        if (shape !== 'triangle') {
-          p.style.boxShadow = `0 0 12px ${adjusted}`;
-        }
-
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 14000);
+      if (shape !== 'triangle') {
+        p.style.boxShadow = `0 0 12px ${adjusted}`;
       }
+
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 14000);
     }
-  }, 300); 
+  }, 100); 
 }
+
+
 
 function stopParticleLoop() {
   if (particleInterval) {
